@@ -1,0 +1,37 @@
+{
+  "name": "thing-commander",
+  "version": "1.0.0",
+  "description": "Command and control console for the iot gateway",
+  "main": "app/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "bin": {
+    "tc": "app/index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vamship/thing-commander.git"
+  },
+  "keywords": [
+    "iot",
+    "\"command",
+    "and",
+    "control\""
+  ],
+  "author": "Vamshi K Ponnapalli <vamshi.ponnapalli@gmail.com>",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/vamship/thing-commander/issues"
+  },
+  "homepage": "https://github.com/vamship/thing-commander#readme",
+  "dependencies": {
+    "asciimo": "^0.3.1",
+    "colors": "^1.1.2",
+    "mqtt": "^1.6.1",
+    "prompt": "^0.2.14",
+    "q": "^1.4.1",
+    "shortid": "^2.2.4",
+    "yargs": "^3.31.0"
+  }
+}
