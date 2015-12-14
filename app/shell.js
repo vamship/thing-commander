@@ -114,6 +114,17 @@ Shell.prototype._processCommand = function(userResp) {
                 this._commander.restartConnector('device', tokens[1]);
                 break;
 
+            //LIST commands
+            case 'list':
+                this._commander.listConnectors(tokens[1]);
+                break;
+            case 'lsc':
+                this._commander.listConnectors('cloud');
+                break;
+            case 'lsd':
+                this._commander.listConnectors('device');
+                break;
+
             //SHUTDOWN commands
             case 'shutdown':
             case 'shd':
@@ -164,7 +175,7 @@ Shell.prototype.launch = function() {
     }
     this._promptDef = _q.defer();
 
-    _prompt.message = '[cnc]'.magenta;
+    _prompt.message = '[tc]'.yellow;
     _prompt.delimiter = '';
 
     this._client.on('message', function(topic, message) {
@@ -175,7 +186,7 @@ Shell.prototype.launch = function() {
             } else if(message.indexOf('[warn]') === 0) {
                 message = message.substring(6).yellow;
             } else {
-                message = message.substring(6).green;
+                message = message.substring(6).blue;
             }
             console.log(message);
         } catch(ex) {

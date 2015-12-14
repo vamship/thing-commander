@@ -118,6 +118,29 @@ Commander.prototype.startConnector = function(category, id, requestId) {
 };
 
 /**
+ * Issues a list connectors command a specific group of connectors or all connectors
+ * via the mqtt broker.
+ *
+ * @class Commander
+ * @method listConnectors
+ * @param {String} [category] The category of the connectors to restart.
+ * @param {String} [requestId] An optional request id.
+ */
+Commander.prototype.listConnectors = function(category, requestId) {
+    requestId = requestId || this._getNextRequestId();
+    if(category !== undefined && category !== 'cloud' && category !== 'device') {
+        throw new Error(_util.format('Invalid category specified: [%s]', category))
+    }
+    var payload = {
+        category: category,
+        action: 'list_connectors'
+    };
+
+    var topic = this._topicPrefix + requestId;
+    this._client.publish(topic, JSON.stringify(payload));
+};
+
+/**
  * Issues a restart command for a specific connector, or a group of connectors
  * via the mqtt broker.
  *
