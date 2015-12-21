@@ -28,12 +28,15 @@ _asciimo.write('Thing Commander', 'Cybermedium', function(art) {
 showBanner.promise
 .then(_argParser.ensureArgs.bind(_argParser))
 .then(function() {
-    return _mqttHelper.initClient({
+    var options = {
         id: 'console_' + GLOBAL.config.cfg_session_id,
-        endpoint: GLOBAL.config.cfg_broker_endpoint,
-        username: GLOBAL.config.cfg_username,
-        password: GLOBAL.config.cfg_password
-    });
+        endpoint: GLOBAL.config.cfg_broker_endpoint
+    };
+    if(!GLOBAL.config.cfg_is_anonymous) {
+        options.username = GLOBAL.config.cfg_username;
+        options.password = GLOBAL.config.cfg_password;
+    }
+    return _mqttHelper.initClient(options);
 }).then(function(client) {
     var clientId = client.options.clientId;
     console.log(_util.format('Client connected to mqtt broker: [%s] [%s]',

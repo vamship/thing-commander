@@ -53,6 +53,14 @@ var _args = _yargs.usage('Usage: $0 [OPTIONS]')
                                   'on the command line.' +
                                   '\r\n'
                     })
+                    .option('anonymous', {
+                        demand: false,
+                        default: false,
+                        type: 'boolean',
+                        describe: 'When specified, attempts to make an anonymous connection ' +
+                                  'to the mqtt broker.' +
+                                  '\r\n'
+                    })
                     .help('help')
                     .alias('help', 'h')
                     .describe('help', 'Show application usage help')
@@ -81,15 +89,19 @@ function _getPromptSchemaForMissingArgs(args) {
     }
 
     if(!_args.username) {
-        properties.username = {
-            description: 'Username:'.blue,
-            type: 'string',
-            message: 'A valid username must be specified'.red,
-            required: true
+        if(_args.anonymous) {
+            _args.username = 'user';
+        } else {
+            properties.username = {
+                description: 'Username:'.blue,
+                type: 'string',
+                message: 'A valid username must be specified'.red,
+                required: true
+            }
         }
     }
 
-    if(!_args.password) {
+    if(!_args.password && !_args.anonymous) {
         properties.password = {
             description: 'Password:'.blue,
             hidden: true,
@@ -131,8 +143,9 @@ module.exports = {
                 cfg_gateway: _args.gateway,
                 cfg_username: _args.username,
                 cfg_password: _args.password,
-                cfg_session_id: _args.sessionId
+                cfg_session_id: _args.sessionId,
             };
+                cfg_is_anonymous: _args.anonymous
             def.resolve();
         });
 
