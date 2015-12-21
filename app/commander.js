@@ -193,6 +193,10 @@ Commander.prototype.sendDataToConnector = function(category, id, data, requestId
         throw new Error(_util.format('Invalid id specified: [%s]', id))
     }
 
+    if(typeof data === 'string' && data.length >= 2) {
+        data = data.substring(1, data.length - 1);
+    }
+
     var payload = {
         action: 'send_data',
         category: category,
@@ -225,7 +229,6 @@ Commander.prototype.updateConnectorConfig = function(category, id, config, reque
     }
     try {
         config = config.substring(1, config.length - 1);
-        console.log(config);
         config = JSON.parse(config);
     } catch(ex) {
         throw new Error(_util.format('Error parsing configuration: [%s]', ex));
