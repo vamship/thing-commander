@@ -1,6 +1,6 @@
 {
   "name": "thing-commander",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Command and control console for the iot gateway",
   "main": "app/index.js",
   "scripts": {
