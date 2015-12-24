@@ -37,7 +37,6 @@ function Commander(client, gateway, username, sessionId) {
     this._sessionId = sessionId;
 }
 
-
 /**
  * @class Commander
  * @method _getNextRequestId
@@ -48,6 +47,16 @@ Commander.prototype._getNextRequestId = function() {
     return this._sessionId + '::' + this._requestCounter;
 };
 
+/**
+ * @class Commander
+ * @method _sendPayload
+ * @private
+ */
+Commander.prototype._sendPayload = function(payload, requestId) {
+    requestId = requestId || this._getNextRequestId();
+    var topic = this._topicPrefix + requestId;
+    this._client.publish(topic, JSON.stringify(payload));
+};
 
 /**
  * Issues a stop command for a specific connector, or a group of connectors
@@ -62,7 +71,6 @@ Commander.prototype._getNextRequestId = function() {
  * @param {String} [requestId] An optional request id.
  */
 Commander.prototype.stopConnector = function(category, id, requestId) {
-    requestId = requestId || this._getNextRequestId();
     if(category === 'all') {
         id = category;
         category = undefined;
@@ -79,8 +87,7 @@ Commander.prototype.stopConnector = function(category, id, requestId) {
         id: (id === 'all')? undefined: id
     };
 
-    var topic = this._topicPrefix + requestId;
-    this._client.publish(topic, JSON.stringify(payload));
+    this._sendPayload(payload, requestId);
 };
 
 /**
@@ -96,7 +103,6 @@ Commander.prototype.stopConnector = function(category, id, requestId) {
  * @param {String} [requestId] An optional request id.
  */
 Commander.prototype.startConnector = function(category, id, requestId) {
-    requestId = requestId || this._getNextRequestId();
     if(category === 'all') {
         id = category;
         category = undefined;
@@ -113,8 +119,7 @@ Commander.prototype.startConnector = function(category, id, requestId) {
         id: (id === 'all')? undefined: id
     };
 
-    var topic = this._topicPrefix + requestId;
-    this._client.publish(topic, JSON.stringify(payload));
+    this._sendPayload(payload, requestId);
 };
 
 /**
@@ -127,7 +132,6 @@ Commander.prototype.startConnector = function(category, id, requestId) {
  * @param {String} [requestId] An optional request id.
  */
 Commander.prototype.listConnectors = function(category, requestId) {
-    requestId = requestId || this._getNextRequestId();
     if(category !== undefined && category !== 'cloud' && category !== 'device') {
         throw new Error(_util.format('Invalid category specified: [%s]', category))
     }
@@ -136,8 +140,7 @@ Commander.prototype.listConnectors = function(category, requestId) {
         action: 'list_connectors'
     };
 
-    var topic = this._topicPrefix + requestId;
-    this._client.publish(topic, JSON.stringify(payload));
+    this._sendPayload(payload, requestId);
 };
 
 /**
@@ -153,7 +156,6 @@ Commander.prototype.listConnectors = function(category, requestId) {
  * @param {String} [requestId] An optional request id.
  */
 Commander.prototype.restartConnector = function(category, id, requestId) {
-    requestId = requestId || this._getNextRequestId();
     if(category === 'all') {
         id = category;
         category = undefined;
@@ -170,8 +172,7 @@ Commander.prototype.restartConnector = function(category, id, requestId) {
         id: (id === 'all')? undefined: id
     };
 
-    var topic = this._topicPrefix + requestId;
-    this._client.publish(topic, JSON.stringify(payload));
+    this._sendPayload(payload, requestId);
 };
 
 /**
@@ -185,7 +186,6 @@ Commander.prototype.restartConnector = function(category, id, requestId) {
  * @param {String} [requestId] An optional request id.
  */
 Commander.prototype.sendDataToConnector = function(category, id, data, requestId) {
-    requestId = requestId || this._getNextRequestId();
     if (category !== 'cloud' && category !== 'device') {
         throw new Error(_util.format('Invalid category specified: [%s]', category))
     }
@@ -204,8 +204,7 @@ Commander.prototype.sendDataToConnector = function(category, id, data, requestId
         data: data
     };
 
-    var topic = this._topicPrefix + requestId;
-    this._client.publish(topic, JSON.stringify(payload));
+    this._sendPayload(payload, requestId);
 };
 
 /**
@@ -220,7 +219,6 @@ Commander.prototype.sendDataToConnector = function(category, id, data, requestId
  * @param {String} [requestId] An optional request id.
  */
 Commander.prototype.updateConnectorConfig = function(category, id, config, requestId) {
-    requestId = requestId || this._getNextRequestId();
     if (category !== 'cloud' && category !== 'device') {
         throw new Error(_util.format('Invalid category specified: [%s]', category))
     }
@@ -241,8 +239,7 @@ Commander.prototype.updateConnectorConfig = function(category, id, config, reque
         config: config
     };
 
-    var topic = this._topicPrefix + requestId;
-    this._client.publish(topic, JSON.stringify(payload));
+    this._sendPayload(payload, requestId);
 };
 
 /**
@@ -255,7 +252,6 @@ Commander.prototype.updateConnectorConfig = function(category, id, config, reque
  * @param {String} [requestId] An optional request id.
  */
 Commander.prototype.deleteConnectorConfig = function(category, id, requestId) {
-    requestId = requestId || this._getNextRequestId();
     if (category !== 'cloud' && category !== 'device') {
         throw new Error(_util.format('Invalid category specified: [%s]', category))
     }
@@ -269,8 +265,7 @@ Commander.prototype.deleteConnectorConfig = function(category, id, requestId) {
         id: id
     };
 
-    var topic = this._topicPrefix + requestId;
-    this._client.publish(topic, JSON.stringify(payload));
+    this._sendPayload(payload, requestId);
 };
 
 /**
@@ -283,7 +278,6 @@ Commander.prototype.deleteConnectorConfig = function(category, id, requestId) {
  * @param {String} [requestId] An optional request id.
  */
 Commander.prototype.updateConnectorType = function(type, modulePath, requestId) {
-    requestId = requestId || this._getNextRequestId();
     if (typeof type !== 'string' || type.length <= 0) {
         throw new Error(_util.format('Invalid type specified: [%s]', type))
     }
@@ -297,8 +291,7 @@ Commander.prototype.updateConnectorType = function(type, modulePath, requestId) 
         modulePath: modulePath
     };
 
-    var topic = this._topicPrefix + requestId;
-    this._client.publish(topic, JSON.stringify(payload));
+    this._sendPayload(payload, requestId);
 };
 
 /**
@@ -306,16 +299,14 @@ Commander.prototype.updateConnectorType = function(type, modulePath, requestId) 
  *
  * @class Commander
  * @method shutdownGateway
+ * @param {String} [requestId] An optional request id.
  */
 Commander.prototype.shutdownGateway = function(requestId) {
-    requestId = requestId || this._getNextRequestId();
-
     var payload = {
         action: 'shutdown_program'
     };
 
-    var topic = this._topicPrefix + requestId;
-    this._client.publish(topic, JSON.stringify(payload));
+    this._sendPayload(payload, requestId);
 };
 
 /**
@@ -323,16 +314,88 @@ Commander.prototype.shutdownGateway = function(requestId) {
  *
  * @class Commander
  * @method upgradeGateway
+ * @param {String} [requestId] An optional request id.
  */
 Commander.prototype.upgradeGateway = function(requestId) {
-    requestId = requestId || this._getNextRequestId();
-
     var payload = {
         action: 'upgrade_program'
     };
 
-    var topic = this._topicPrefix + requestId;
-    this._client.publish(topic, JSON.stringify(payload));
+    this._sendPayload(payload, requestId);
+};
+
+
+/**
+ * Sends a series of commands to the gateway, initializing it with a connection
+ * to the cloud.
+ *
+ * @class Commander
+ * @method provisionGateway
+ * @param {Object} options An options object that contains provisioning parameters
+ *          for the gateway.
+ * @param {String} [requestId] An optional request id.
+ */
+Commander.prototype.provisionGateway = function(options, requestId) {
+    if(!options || typeof options !== 'object') {
+        throw new Error('Invalid provisioning options specified (arg #1)');
+    }
+    if(typeof options.host !== 'string' || options.host.length <= 0) {
+        throw new Error('Options does not define a valid host (options.host)');
+    }
+    if(typeof options.gatewayname !== 'string' || options.gatewayname.length <= 0) {
+        throw new Error('Options does not define a valid gateway name (options.gatewayname)');
+    }
+    if(typeof options.username !== 'string' || options.username.length <= 0) {
+        throw new Error('Options does not define a valid user name (options.username)');
+    }
+    if(typeof options.password !== 'string' || options.password.length <= 0) {
+        throw new Error('Options does not define a valid password (options.password)');
+    }
+    options.port = options.port || '8443';
+    options.protocol = options.protocol || 'mqtts';
+    options.networkInterface = options.networkInterface || 'eth0';
+
+    var payload = [ {
+        action: 'update_config',
+        category: 'cloud',
+        id: 'cnc-cloud-' +  options.gatewayname,
+        config: {
+            type: 'CncCloud',
+            config: {
+                host: options.host,
+                port: options.port,
+                protocol: options.protocol,
+                networkInterface: options.networkInterface,
+                gatewayname: options.gatewayname,
+                username: options.username,
+                password: options.password,
+                topics: ''
+            }
+        }
+    }, {
+        action: 'update_config',
+        category: 'device',
+        id: 'cnc-gateway-' +  options.gatewayname,
+        config: {
+            type: 'CncGateway',
+            config: { }
+        }
+    }, {
+        action: 'send_data',
+        category: 'device',
+        id: 'cnc-gateway',
+        data: JSON.stringify({ command: 'disable_local_network' })
+    }, {
+        action: 'delete_config',
+        category: 'cloud',
+        id: 'cnc-cloud'
+    }, {
+        action: 'delete_config',
+        category: 'device',
+        id: 'cnc-gateway'
+    } ];
+
+    this._sendPayload(payload, requestId);
 };
 
 

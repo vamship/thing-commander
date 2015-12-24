@@ -82,7 +82,7 @@ Shell.prototype._processCommand = function(userResp) {
                 return;
 
             //STOP commands
-            case 'stop':
+            case 'stp':
                 this._commander.stopConnector(tokens[1], tokens[2]);
                 break;
             case 'stc':
@@ -93,7 +93,7 @@ Shell.prototype._processCommand = function(userResp) {
                 break;
 
             //START commands
-            case 'start':
+            case 'str':
                 this._commander.startConnector(tokens[1], tokens[2]);
                 break;
             case 'src':
@@ -104,7 +104,7 @@ Shell.prototype._processCommand = function(userResp) {
                 break;
 
             //RESTART commands
-            case 'restart':
+            case 'rst':
                 this._commander.restartConnector(tokens[1], tokens[2]);
                 break;
             case 'rsc':
@@ -115,7 +115,7 @@ Shell.prototype._processCommand = function(userResp) {
                 break;
 
             //LIST commands
-            case 'list':
+            case 'lst':
                 this._commander.listConnectors(tokens[1]);
                 break;
             case 'lsc':
@@ -126,13 +126,11 @@ Shell.prototype._processCommand = function(userResp) {
                 break;
 
             //SHUTDOWN commands
-            case 'shutdown':
             case 'shd':
                 this._commander.shutdownGateway();
                 break;
 
             //UPGRADE commands
-            case 'upgrade':
             case 'upg':
                 this._commander.upgradeGateway();
                 break;
@@ -148,6 +146,20 @@ Shell.prototype._processCommand = function(userResp) {
                 break;
             case 'uct':
                 this._commander.updateConnectorType(tokens[1], tokens[2]);
+                break;
+
+            case 'prv':
+                var options = {
+                    host: (tokens[1] === 'prod')? 'api-iot.analoggarage.com':
+                                                    'api-iot-dev.analoggarage.com',
+                    gatewayname: tokens[2],
+                    username: tokens[3],
+                    password: tokens[4],
+                    port: 8080,
+                    protocol: 'mqtts',
+                    networkInterface: 'eth0'
+                };
+                this._commander.provisionGateway(options);
                 break;
             default:
                 console.log('bad command'.red);
