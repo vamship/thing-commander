@@ -195,7 +195,14 @@ Commander.prototype.sendDataToConnector = function(category, id, data, requestId
 
     if(typeof data === 'string' && data.length >= 2) {
         data = data.substring(1, data.length - 1);
+    } else if (!data) {
+        data = '';
+    } else if(typeof data === 'object') {
+        data = JSON.stringify(data);
+    } else {
+        data = '{}';
     }
+
 
     var payload = {
         action: 'send_data',
@@ -205,6 +212,38 @@ Commander.prototype.sendDataToConnector = function(category, id, data, requestId
     };
 
     this._sendPayload(payload, requestId);
+};
+
+/**
+ * Issues a "get sys info" command to the gateway via the mqtt broker.
+ *
+ * @class Commander
+ * @method sysInfo
+ * @param {String} gatewayname The name of the current gateway.
+ * @param {String} [requestId] An optional request id.
+ */
+Commander.prototype.sysInfo = function(gatewayname) {
+    if(typeof gatewayname !== 'string' || gatewayname.length <= 0) {
+        throw new Error('Invalid gateway name specified (arg #1)');
+    }
+    var connectorId = 'cnc-gateway-' + gatewayname;
+    this.sendDataToConnector('device', connectorId, { command: 'system_info' });
+};
+
+/**
+ * Issues a "reset agent" command, that places the agent in provisioning mode.
+ *
+ * @class Commander
+ * @method resetAgent
+ * @param {String} gatewayname The name of the current gateway.
+ * @param {String} [requestId] An optional request id.
+ */
+Commander.prototype.resetAgent = function(gatewayname) {
+    if(typeof gatewayname !== 'string' || gatewayname.length <= 0) {
+        throw new Error('Invalid gateway name specified (arg #1)');
+    }
+    var connectorId = 'cnc-gateway-' + gatewayname;
+    this.sendDataToConnector('device', connectorId, { command: 'reset_agent' });
 };
 
 /**
@@ -328,6 +367,22 @@ Commander.prototype.upgradeAgent = function(requestId) {
 
 
 /**
+ * Issues a reboot command to the gateway via the mqtt broker.
+ *
+ * @class Commander
+ * @method rebootGateway
+ * @param {String} [requestId] An optional request id.
+ */
+Commander.prototype.rebootGateway = function(requestId) {
+    var payload = {
+        action: 'maintenance_action',
+        command: 'reboot_system'
+    };
+
+    this._sendPayload(payload, requestId);
+};
+
+/**
  * Sends a series of commands to the gateway, initializing it with a connection
  * to the cloud.
  *
@@ -344,8 +399,11 @@ Commander.prototype.provisionGateway = function(options, requestId) {
     if(typeof options.host !== 'string' || options.host.length <= 0) {
         throw new Error('Options does not define a valid host (options.host)');
     }
-    if(typeof options.gatewayname !== 'string' || options.gatewayname.length <= 0) {
-        throw new Error('Options does not define a valid gateway name (options.gatewayname)');
+    if(typeof options.currentGatewayName !== 'string' || options.currentGatewayName.length <= 0) {
+        throw new Error('Options does not define a valid current gateway name (options.currentGatewayName)');
+    }
+    if(typeof options.newGatewayname !== 'string' || options.newGatewayname.length <= 0) {
+        throw new Error('Options does not define a valid new gateway name (options.newGatewayname)');
     }
     if(typeof options.username !== 'string' || options.username.length <= 0) {
         throw new Error('Options does not define a valid user name (options.username)');
@@ -358,9 +416,10 @@ Commander.prototype.provisionGateway = function(options, requestId) {
     options.networkInterface = options.networkInterface || 'eth0';
 
     var payload = [ {
+        // New cnc cloud connector.
         action: 'update_config',
         category: 'cloud',
-        id: 'cnc-cloud-' +  options.gatewayname,
+        id: 'cnc-cloud-' +  options.newGatewayname,
         config: {
             type: 'CncCloud',
             config: {
@@ -368,33 +427,37 @@ Commander.prototype.provisionGateway = function(options, requestId) {
                 port: options.port,
                 protocol: options.protocol,
                 networkInterface: options.networkInterface,
-                gatewayname: options.gatewayname,
+                gatewayname: options.newGatewayname,
                 username: options.username,
                 password: options.password,
                 topics: ''
             }
         }
     }, {
+        // New cnc gateway connector.
         action: 'update_config',
         category: 'device',
-        id: 'cnc-gateway-' +  options.gatewayname,
+        id: 'cnc-gateway-' +  options.newGatewayname,
         config: {
             type: 'CncGateway',
             config: { }
         }
     }, {
+        // Disable local network on reboot.
         action: 'send_data',
         category: 'device',
-        id: 'cnc-gateway',
+        id: 'cnc-gateway-' + options.currentGatewayName,
         data: JSON.stringify({ command: 'disable_local_network' })
     }, {
+        // Delete old cnc cloud connector
         action: 'delete_config',
         category: 'cloud',
-        id: 'cnc-cloud'
+        id: 'cnc-cloud-' + options.currentGatewayName
     }, {
+        // Delete old cnc gateway connector
         action: 'delete_config',
         category: 'device',
-        id: 'cnc-gateway'
+        id: 'cnc-gateway-' + options.currentGatewayName
     } ];
 
     this._sendPayload(payload, requestId);

@@ -53,6 +53,7 @@ function Shell(client, gateway, username, sessionId) {
     client.subscribe(subTopic);
 
     this._sessionId = sessionId;
+    this._gateway = gateway;
     this._client = client;
     this._commander = new Commander(client, gateway, username, sessionId);
     this._showPrompt = _buildPrompt(this);
@@ -125,16 +126,6 @@ Shell.prototype._processCommand = function(userResp) {
                 this._commander.listConnectors('device');
                 break;
 
-            //TERMINATE program commands
-            case 'trm':
-                this._commander.terminateAgent();
-                break;
-
-            //UPGRADE commands
-            case 'upg':
-                this._commander.upgradeAgent();
-                break;
-
             //CONNECTOR commands
             case 'sdc':
                 this._commander.sendDataToConnector(tokens[1], tokens[2], tokens[3]);
@@ -149,15 +140,37 @@ Shell.prototype._processCommand = function(userResp) {
                 this._commander.updateConnectorType(tokens[1], tokens[2]);
                 break;
 
+            case 'sys':
+                this._commander.sysInfo(this._gateway);
+                break;
+            case 'rsa':
+                this._commander.resetAgent(this._gateway);
+                break;
+
+            //TERMINATE program commands
+            case 'trm':
+                this._commander.terminateAgent();
+                break;
+
+            //UPGRADE commands
+            case 'upg':
+                this._commander.upgradeAgent();
+                break;
+
+           case 'rbt':
+               this._commander.rebootGateway();
+               break;
+
             // Provisioning commands
             case 'prv':
                 var options = {
                     host: (tokens[1] === 'prod')? 'api-iot.analoggarage.com':
                                                     'api-iot-dev.analoggarage.com',
-                    gatewayname: tokens[2],
+                    newGatewayname: tokens[2],
                     username: tokens[3],
                     password: tokens[4],
-                    port: 8080,
+                    currentGatewayName: this._gateway,
+                    port: tokens[5] || 8080,
                     protocol: 'mqtts',
                     networkInterface: 'eth0'
                 };
