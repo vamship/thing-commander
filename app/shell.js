@@ -125,16 +125,17 @@ Shell.prototype._processCommand = function(userResp) {
                 this._commander.listConnectors('device');
                 break;
 
-            //SHUTDOWN commands
-            case 'shd':
-                this._commander.shutdownGateway();
+            //TERMINATE program commands
+            case 'trm':
+                this._commander.terminateAgent();
                 break;
 
             //UPGRADE commands
             case 'upg':
-                this._commander.upgradeGateway();
+                this._commander.upgradeAgent();
                 break;
 
+            //CONNECTOR commands
             case 'sdc':
                 this._commander.sendDataToConnector(tokens[1], tokens[2], tokens[3]);
                 break;
@@ -148,6 +149,7 @@ Shell.prototype._processCommand = function(userResp) {
                 this._commander.updateConnectorType(tokens[1], tokens[2]);
                 break;
 
+            // Provisioning commands
             case 'prv':
                 var options = {
                     host: (tokens[1] === 'prod')? 'api-iot.analoggarage.com':

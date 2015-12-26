@@ -295,15 +295,16 @@ Commander.prototype.updateConnectorType = function(type, modulePath, requestId) 
 };
 
 /**
- * Issues a program shutdown command to the gateway via the mqtt broker.
+ * Issues a program terminate command to the gateway via the mqtt broker.
  *
  * @class Commander
- * @method shutdownGateway
+ * @method terminateAgent
  * @param {String} [requestId] An optional request id.
  */
-Commander.prototype.shutdownGateway = function(requestId) {
+Commander.prototype.terminateAgent = function(requestId) {
     var payload = {
-        action: 'shutdown_program'
+        action: 'maintenance_action',
+        command: 'shutdown_program'
     };
 
     this._sendPayload(payload, requestId);
@@ -313,12 +314,13 @@ Commander.prototype.shutdownGateway = function(requestId) {
  * Issues a program upgrade command to the gateway via the mqtt broker.
  *
  * @class Commander
- * @method upgradeGateway
+ * @method upgradeAgent
  * @param {String} [requestId] An optional request id.
  */
-Commander.prototype.upgradeGateway = function(requestId) {
+Commander.prototype.upgradeAgent = function(requestId) {
     var payload = {
-        action: 'upgrade_program'
+        action: 'maintenance_action',
+        command: 'upgrade_program'
     };
 
     this._sendPayload(payload, requestId);
