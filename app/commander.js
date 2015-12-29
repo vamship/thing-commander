@@ -54,6 +54,10 @@ Commander.prototype._getNextRequestId = function() {
  */
 Commander.prototype._sendPayload = function(payload, requestId) {
     requestId = requestId || this._getNextRequestId();
+
+    console.log(requestId, JSON.stringify(payload));
+    return;
+
     var topic = this._topicPrefix + requestId;
     this._client.publish(topic, JSON.stringify(payload));
 };
@@ -264,11 +268,15 @@ Commander.prototype.updateConnectorConfig = function(category, id, config, reque
     if (typeof id !== 'string' || id.length <= 0) {
         throw new Error(_util.format('Invalid id specified: [%s]', id))
     }
-    try {
-        config = config.substring(1, config.length - 1);
-        config = JSON.parse(config);
-    } catch(ex) {
-        throw new Error(_util.format('Error parsing configuration: [%s]', ex));
+    if(typeof config === 'string') {
+        try {
+            config = config.substring(1, config.length - 1);
+            config = JSON.parse(config);
+        } catch(ex) {
+            throw new Error(_util.format('Error parsing configuration: [%s]', ex));
+        }
+    } else if(!config || typeof config !== 'object') {
+        throw new Error('Invalid config specified - must be string or object (arg #3)');
     }
 
     var payload = {
@@ -376,7 +384,7 @@ Commander.prototype.upgradeAgent = function(requestId) {
 Commander.prototype.rebootGateway = function(requestId) {
     var payload = {
         action: 'maintenance_action',
-        command: 'reboot_system'
+        command: 'reboot_gateway'
     };
 
     this._sendPayload(payload, requestId);
@@ -387,12 +395,12 @@ Commander.prototype.rebootGateway = function(requestId) {
  * to the cloud.
  *
  * @class Commander
- * @method provisionGateway
+ * @method initAgent
  * @param {Object} options An options object that contains provisioning parameters
  *          for the gateway.
  * @param {String} [requestId] An optional request id.
  */
-Commander.prototype.provisionGateway = function(options, requestId) {
+Commander.prototype.initAgent = function(options, requestId) {
     if(!options || typeof options !== 'object') {
         throw new Error('Invalid provisioning options specified (arg #1)');
     }
@@ -402,8 +410,8 @@ Commander.prototype.provisionGateway = function(options, requestId) {
     if(typeof options.currentGatewayName !== 'string' || options.currentGatewayName.length <= 0) {
         throw new Error('Options does not define a valid current gateway name (options.currentGatewayName)');
     }
-    if(typeof options.newGatewayname !== 'string' || options.newGatewayname.length <= 0) {
-        throw new Error('Options does not define a valid new gateway name (options.newGatewayname)');
+    if(typeof options.newGatewayName !== 'string' || options.newGatewayName.length <= 0) {
+        throw new Error('Options does not define a valid new gateway name (options.newGatewayName)');
     }
     if(typeof options.username !== 'string' || options.username.length <= 0) {
         throw new Error('Options does not define a valid user name (options.username)');
@@ -419,7 +427,7 @@ Commander.prototype.provisionGateway = function(options, requestId) {
         // New cnc cloud connector.
         action: 'update_config',
         category: 'cloud',
-        id: 'cnc-cloud-' +  options.newGatewayname,
+        id: 'cnc-cloud-' +  options.newGatewayName,
         config: {
             type: 'CncCloud',
             config: {
@@ -427,7 +435,7 @@ Commander.prototype.provisionGateway = function(options, requestId) {
                 port: options.port,
                 protocol: options.protocol,
                 networkInterface: options.networkInterface,
-                gatewayname: options.newGatewayname,
+                gatewayname: options.newGatewayName,
                 username: options.username,
                 password: options.password,
                 topics: ''
@@ -437,7 +445,7 @@ Commander.prototype.provisionGateway = function(options, requestId) {
         // New cnc gateway connector.
         action: 'update_config',
         category: 'device',
-        id: 'cnc-gateway-' +  options.newGatewayname,
+        id: 'cnc-gateway-' +  options.newGatewayName,
         config: {
             type: 'CncGateway',
             config: { }
@@ -460,8 +468,26 @@ Commander.prototype.provisionGateway = function(options, requestId) {
         id: 'cnc-gateway-' + options.currentGatewayName
     } ];
 
+    if(typeof options.apiKey === 'string' && options.apiKey.length > 0) {
+        payload.push({
+            action: 'update_config',
+            category: 'cloud',
+            id: 'http',
+            config: {
+                type: 'Http',
+                config: {
+                    pollFrequency: 10000,
+                    url: 'https://' + options.host,
+                    headers: {
+                        apiKey: options.apiKey,
+                        'content-type': 'application/json'
+                    }
+                }
+            }
+        });
+    }
+
     this._sendPayload(payload, requestId);
 };
-
 
 module.exports = Commander;

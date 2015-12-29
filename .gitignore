@@ -17,3 +17,6 @@ node_modules
 
 # Temporary files.
 .tmp/
+
+# History file for the app
+.tc_history
