@@ -27,9 +27,11 @@
   "homepage": "https://github.com/vamship/thing-commander#readme",
   "dependencies": {
     "asciimo": "^0.3.1",
+    "clone": "^1.0.2",
     "colors": "^1.1.2",
     "mqtt": "^1.6.1",
     "prompt": "^0.2.14",
+    "prompt-sync": "^3.0.0",
     "q": "^1.4.1",
     "shortid": "^2.2.4",
     "yargs": "^3.31.0"
