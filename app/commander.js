@@ -220,14 +220,13 @@ Commander.prototype.sendDataToConnector = function(category, id, data, requestId
  *
  * @class Commander
  * @method sysInfo
- * @param {String} gatewayname The name of the current gateway.
+ * @param {String} connectorId The id of the cnc connector on the device.
  * @param {String} [requestId] An optional request id.
  */
-Commander.prototype.sysInfo = function(gatewayname) {
-    if(typeof gatewayname !== 'string' || gatewayname.length <= 0) {
-        throw new Error('Invalid gateway name specified (arg #1)');
+Commander.prototype.sysInfo = function(connectorId) {
+    if(typeof connectorId !== 'string' || connectorId.length <= 0) {
+        throw new Error('Invalid connectorId specified (arg #1)');
     }
-    var connectorId = 'cnc-gateway-' + gatewayname;
     this.sendDataToConnector('device', connectorId, { command: 'system_info' });
 };
 
@@ -236,14 +235,13 @@ Commander.prototype.sysInfo = function(gatewayname) {
  *
  * @class Commander
  * @method resetAgent
- * @param {String} gatewayname The name of the current gateway.
+ * @param {String} connectorId The id of the cnc connector on the device.
  * @param {String} [requestId] An optional request id.
  */
-Commander.prototype.resetAgent = function(gatewayname) {
-    if(typeof gatewayname !== 'string' || gatewayname.length <= 0) {
-        throw new Error('Invalid gateway name specified (arg #1)');
+Commander.prototype.resetAgent = function(connectorId) {
+    if(typeof connectorId !== 'string' || connectorId.length <= 0) {
+        throw new Error('Invalid connectorId specified (arg #1)');
     }
-    var connectorId = 'cnc-gateway-' + gatewayname;
     this.sendDataToConnector('device', connectorId, { command: 'reset_agent' });
 };
 
@@ -424,7 +422,7 @@ Commander.prototype.initAgent = function(options, requestId) {
         // New cnc cloud connector.
         action: 'update_config',
         category: 'cloud',
-        id: 'cnc-cloud-' +  options.newGatewayName,
+        id: options.newGatewayName + '-cnc-cloud',
         config: {
             type: 'CncCloud',
             config: {
@@ -442,7 +440,7 @@ Commander.prototype.initAgent = function(options, requestId) {
         // New cnc gateway connector.
         action: 'update_config',
         category: 'device',
-        id: 'cnc-gateway-' +  options.newGatewayName,
+        id: options.newGatewayName + '-cnc-gateway',
         config: {
             type: 'CncGateway',
             config: { }
@@ -469,7 +467,7 @@ Commander.prototype.initAgent = function(options, requestId) {
         payload.push({
             action: 'update_config',
             category: 'cloud',
-            id: 'http',
+            id: options.newGatewayName + '-http',
             config: {
                 type: 'Http',
                 config: {

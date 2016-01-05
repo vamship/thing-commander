@@ -53,6 +53,15 @@ function Shell(client, gateway, username, sessionId) {
 
 /**
  * @class Shell
+ * @method _getCncConnectorId
+ * @private
+ */
+Shell.prototype._getCncConnectorId = function() {
+    return this._gateway + '-' + 'cnc-gateway';
+};
+
+/**
+ * @class Shell
  * @method _buildCommandMap
  * @private
  */
@@ -91,7 +100,7 @@ Shell.prototype._buildCommandMap = function() {
     generateCommand('con:delete_config', 'deleteConnectorConfig');
     generateCommand('con:update_type', 'updateConnectorType');
 
-    generateCommand('agent:reset', 'resetAgent');
+    generateCommand('agent:reset', 'resetAgent', [ this._getCncConnectorId() ]);
     generateCommand('agent:terminate', 'terminateAgent');
     generateCommand('agent:upgrade', 'upgradeAgent');
     generateCommand('agent:prov_dev', 'initAgent', {
@@ -136,11 +145,11 @@ Shell.prototype._buildCommandMap = function() {
         commander.updateConnectorConfig('device', options.id, config);
     }, {
         id: null,
-        pollFrequency: 5000,
+        pollFrequency: 60000,
         maxRetries: 600
     });
 
-    generateCommand('sys:info', 'sysInfo');
+    generateCommand('sys:info', 'sysInfo', [ this._getCncConnectorId() ]);
     generateCommand('sys:reboot', 'rebootGateway');
 
     return commandMap;
@@ -211,32 +220,31 @@ Shell.prototype._generateSubscribeHandler = function(client, topic) {
  */
 Shell.prototype._repl = function() {
     var prompt = '>'.yellow;
-    var done = false;
     var tabComplete = this._tabComplete();
 
-    do {
-        try {
-            process.stdout.write(prompt);
-            var resp = _promptSync.prompt({ tabComplete: tabComplete });
-            resp = resp || '';
-            var tokens = resp.match(/(?:[^\s']+|'[^']*')+/g);
+    try {
+        process.stdout.write(prompt);
+        var resp = _promptSync.prompt({ tabComplete: tabComplete });
+        resp = resp || '';
+        var tokens = resp.match(/(?:[^\s']+|'[^']*')+/g);
 
-            if(tokens instanceof Array) {
-                var commandInfo = this._commandMap[tokens[0]];
-                if(tokens[0] === 'q' || tokens[1] === 'quit') {
-                    done = true;
-                } else if(!commandInfo) {
-                    console.log('bad command'.red);
-                } else {
-                    var args = this._applyArgs(commandInfo.args, tokens);
-                    commandInfo.method.apply(null, args);
-                    //this._commander[commandInfo.method].apply(this._commander, args);
-                }
+        if(tokens instanceof Array) {
+            var commandInfo = this._commandMap[tokens[0]];
+            if(tokens[0] === 'q' || tokens[1] === 'quit') {
+                this._promptDef.resolve();
+                return;
+            } else if(!commandInfo) {
+                console.log('bad command'.red);
+            } else {
+                var args = this._applyArgs(commandInfo.args, tokens);
+                commandInfo.method.apply(null, args);
             }
-        } catch (ex) {
-            console.log(ex.toString().red);
         }
-    } while(!done);
+    } catch (ex) {
+        console.log(ex.toString().red);
+    }
+
+    setTimeout(this._repl.bind(this), 250);
 };
 
 
@@ -273,11 +281,11 @@ Shell.prototype.launch = function() {
     var historyFile = _path.resolve(_path.join(__dirname, '../.tc_history'));
     _promptSync.init(historyFile);
     this._repl();
-    console.log('Saving history file'.white);
-    _promptSync.save();
-    this._promptDef.resolve();
 
-    return this._promptDef.promise;
+    return this._promptDef.promise.fin(function() {
+        console.log('Saving history file'.white);
+        _promptSync.save();
+    });
 };
 
 module.exports = Shell;
