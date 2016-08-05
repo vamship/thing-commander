@@ -449,21 +449,22 @@ Commander.prototype.initAgent = function(options, requestId) {
         // Disable local network on reboot.
         action: 'send_data',
         category: 'device',
-        id: 'cnc-gateway-' + options.currentGatewayName,
+        id: options.currentGatewayName + '-cnc-gateway',
         data: JSON.stringify({ command: 'disable_local_network' })
     }, {
         // Delete old cnc cloud connector
         action: 'delete_config',
         category: 'cloud',
-        id: 'cnc-cloud-' + options.currentGatewayName
+        id: options.currentGatewayName + '-cnc-cloud' 
     }, {
         // Delete old cnc gateway connector
         action: 'delete_config',
         category: 'device',
-        id: 'cnc-gateway-' + options.currentGatewayName
+        id: options.currentGatewayName + '-cnc-gateway'
     } ];
 
-    if(typeof options.apiKey === 'string' && options.apiKey.length > 0) {
+    if(typeof options.authKey === 'string' && options.authKey.length > 0) {
+        var authToken = options.newGatewayName + '|' + options.authKey;
         payload.push({
             action: 'update_config',
             category: 'cloud',
@@ -474,7 +475,7 @@ Commander.prototype.initAgent = function(options, requestId) {
                     pollFrequency: 10000,
                     url: 'https://' + options.host,
                     headers: {
-                        apiKey: options.apiKey,
+                        authorization:  authToken,
                         'content-type': 'application/json'
                     }
                 }

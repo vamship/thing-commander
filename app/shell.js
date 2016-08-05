@@ -139,7 +139,8 @@ Shell.prototype._buildCommandMap = function() {
                 pollFrequency: options.pollFrequency,
                 spiDevice: '/dev/spidev0.1',
                 i2cDevice: '/dev/i2c-1',
-                maxRetries: options.maxRetries
+                maxRetries: options.maxRetries,
+                cameraResetPin: 23
             }
         };
         commander.updateConnectorConfig('device', options.id, config);
